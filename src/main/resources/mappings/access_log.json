@@ -1,0 +1,26 @@
+{
+  "properties": {
+    "ip": {
+      "type": "text"
+    },
+    "method": {
+      "type": "keyword"
+    },
+    "user_agent": {
+      "type": "keyword"
+    },
+    "protocol": {
+      "type": "keyword"
+    },
+    "uid": {
+      "type": "text"
+    },
+    "uri": {
+      "type": "keyword"
+    },
+    "created": {
+      "type": "date",
+      "format": "yyyy-MM-dd HH:mm:ss.SSS"
+    }
+  }
+}
