@@ -37,6 +37,7 @@ class PostgresTest {
             .withUsername("test_user")
             .withPassword("84z$Vw8&")
             .withClasspathResourceMapping("db/parameters.sql", "/docker-entrypoint-initdb.d/parameters.sql", BindMode.READ_ONLY)
+            .withInitScript("db/init_postgres.sql")
             .withExposedPorts(POSTGRES_PORT);
 
     @DynamicPropertySource
@@ -78,6 +79,15 @@ class PostgresTest {
 
         String fsync = jdbcTemplate.queryForObject("SELECT current_setting('fsync')", String.class);
         Assertions.assertEquals("off", fsync);
+    }
+
+    @Order(3)
+    @DisplayName("초기 스크립트 검증")
+    @Test
+    void TestInitScript() {
+        String extname = jdbcTemplate.queryForObject("SELECT extname FROM pg_extension where extname = 'pg_stat_statements'", String.class);
+        Assertions.assertNotNull(extname);
+        Assertions.assertEquals("pg_stat_statements", extname);
     }
 
 }
