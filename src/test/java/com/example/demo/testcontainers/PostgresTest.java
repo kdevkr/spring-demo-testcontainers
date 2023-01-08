@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -30,6 +31,8 @@ class PostgresTest {
             .withDatabaseName("test")
             .withUsername("test_user")
             .withPassword(UUID.randomUUID().toString())
+//            .withCommand("-c", "max_connections=500")
+//            .withClasspathResourceMapping("db/parameters.sql", "/docker-entrypoint-initdb.d/parameters.sql", BindMode.READ_ONLY)
             .withExposedPorts(POSTGRES_PORT);
 
     @DynamicPropertySource
@@ -43,7 +46,6 @@ class PostgresTest {
         registry.add("spring.datasource.username", () -> postgres.getUsername());
         registry.add("spring.datasource.password", () -> postgres.getPassword());
     }
-
 
     @Autowired
     private DataSourceProperties dataSourceProperties;
@@ -64,6 +66,16 @@ class PostgresTest {
         String version = jdbcTemplate.queryForObject("SELECT version()", String.class);
         Assertions.assertNotNull(version);
         Assertions.assertTrue(version.startsWith("PostgreSQL 14.6"));
+    }
+
+    @Disabled
+    @Order(2)
+    @DisplayName("옵션 설정 체크")
+    @Test
+    void TestConfig() {
+        Integer maxConnections = jdbcTemplate.queryForObject("SELECT current_setting('max_connections')", Integer.class);
+        Assertions.assertNotNull(maxConnections);
+        Assertions.assertEquals(500, maxConnections);
     }
 
 }
