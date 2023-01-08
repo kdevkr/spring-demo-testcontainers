@@ -1,11 +1,17 @@
 package com.example.demo.testcontainers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.BindMode;
@@ -14,8 +20,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import java.util.UUID;
-
+@ActiveProfiles("test")
 @Slf4j
 @DisplayName("포스트그레스 통합 테스트")
 @TestMethodOrder(value = MethodOrderer.OrderAnnotation.class)
@@ -23,28 +28,23 @@ import java.util.UUID;
 @Testcontainers
 class PostgresTest {
 
-    private static final String TEST_CONTAINER_JDBC_DRIVER = "org.testcontainers.jdbc.ContainerDatabaseDriver";
+    private static final String TEST_CONTAINER_JDBC_DRIVER = org.postgresql.Driver.class.getName();
     private static final int POSTGRES_PORT = 5432;
 
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:14.6-alpine"))
+    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:14.6-alpine"))
             .withDatabaseName("test")
             .withUsername("test_user")
-            .withPassword(UUID.randomUUID().toString())
-//            .withCommand("-c", "max_connections=500")
-//            .withClasspathResourceMapping("db/parameters.sql", "/docker-entrypoint-initdb.d/parameters.sql", BindMode.READ_ONLY)
+            .withPassword("84z$Vw8&")
+            .withClasspathResourceMapping("db/parameters.sql", "/docker-entrypoint-initdb.d/parameters.sql", BindMode.READ_ONLY)
             .withExposedPorts(POSTGRES_PORT);
 
     @DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.driver-class-name", () -> TEST_CONTAINER_JDBC_DRIVER);
-        registry.add("spring.datasource.url",
-                () -> "jdbc:tc:postgresql:14.6:///%s:%s/%s?TC_INITSCRIPT=db/init_postgres.sql".formatted(
-                        postgres.getHost(),
-                        postgres.getMappedPort(POSTGRES_PORT),
-                        postgres.getDatabaseName()));
-        registry.add("spring.datasource.username", () -> postgres.getUsername());
-        registry.add("spring.datasource.password", () -> postgres.getPassword());
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
     }
 
     @Autowired
@@ -68,7 +68,6 @@ class PostgresTest {
         Assertions.assertTrue(version.startsWith("PostgreSQL 14.6"));
     }
 
-    @Disabled
     @Order(2)
     @DisplayName("옵션 설정 체크")
     @Test
@@ -76,6 +75,9 @@ class PostgresTest {
         Integer maxConnections = jdbcTemplate.queryForObject("SELECT current_setting('max_connections')", Integer.class);
         Assertions.assertNotNull(maxConnections);
         Assertions.assertEquals(500, maxConnections);
+
+        String fsync = jdbcTemplate.queryForObject("SELECT current_setting('fsync')", String.class);
+        Assertions.assertEquals("off", fsync);
     }
 
 }
