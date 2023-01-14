@@ -7,5 +7,4 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./entrypoint.sh:/entrypoint.sh
       - ./kc.lic:/opt/kx/kc.lic
