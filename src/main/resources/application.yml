@@ -1,1 +1,8 @@
-
+server:
+  servlet:
+    session:
+      persistent: true
+      tracking-modes: cookie
+spring:
+  session:
+    store-type: redis
