@@ -50,7 +50,7 @@ class RedisTest {
     }
 
     @DynamicPropertySource
-    static void registerPgProperties(DynamicPropertyRegistry registry) {
+    static void registerRedisProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.redis.host", () -> redis.getHost());
         registry.add("spring.redis.port", () -> redis.getMappedPort(REDIS_PORT));
     }
