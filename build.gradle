@@ -23,6 +23,7 @@ repositories {
 }
 
 dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-freemarker'
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
@@ -41,7 +42,6 @@ dependencies {
     testImplementation 'org.testcontainers:postgresql'
     testImplementation "org.testcontainers:elasticsearch"
     testImplementation 'com.redis.testcontainers:testcontainers-redis-junit:1.6.2'
-
 }
 
 dependencyManagement {
